@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Confirmação de Presença</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #1e293b;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .stat-card.adults .number { color: #3b82f6; }
+        .stat-card.children-50 .number { color: #f59e0b; }
+        .stat-card.children-free .number { color: #10b981; }
+
+        .search-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .participant-list {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .participant-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s;
+        }
+
+        .participant-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .participant-item:last-child {
+            border-bottom: none;
+        }
+
+        .participant-info h4 {
+            font-size: 1.1rem;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge.adult {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge.child-50 {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge.child-free {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .confirmed-badge {
+            background: #d1fae5;
+            color: #059669;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .export-btn {
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+
+        .export-btn:hover {
+            background: #059669;
+        }
+
+        @media (max-width: 768px) {
+            .participant-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sistema de Confirmação de Presença</h1>
+            <p>Gerencie a presença dos participantes do evento</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total de Participantes</h3>
+                <div class="number" id="total-participants">127</div>
+            </div>
+            <div class="stat-card">
+                <h3>Confirmados</h3>
+                <div class="number" id="confirmed-count">0</div>
+            </div>
+            <div class="stat-card adults">
+                <h3>Adultos (100%)</h3>
+                <div class="number" id="adults-count">0/112</div>
+            </div>
+            <div class="stat-card children-50">
+                <h3>Crianças 11-12 anos (50%)</h3>
+                <div class="number" id="children-50-count">0/2</div>
+            </div>
+            <div class="stat-card children-free">
+                <h3>Crianças até 10 anos (Isento)</h3>
+                <div class="number" id="children-free-count">0/13</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('search')">
+                🔍 Confirmar Presença
+            </button>
+            <button class="tab-button" onclick="showTab('confirmed')">
+                ✅ Lista de Confirmados (<span id="confirmed-tab-count">0</span>)
+            </button>
+        </div>
+
+        <div id="search-tab" class="tab-content">
+            <div class="search-section">
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        placeholder="Digite o nome do participante..."
+                        id="search-input"
+                        oninput="filterParticipants()"
+                    >
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+
+            <div class="participant-list" id="pending-list">
+                <!-- Lista será preenchida pelo JavaScript -->
+            </div>
+        </div>
+
+        <div id="confirmed-tab" class="tab-content" style="display: none;">
+            <div class="participant-list" id="confirmed-list">
+                <div class="empty-state">
+                    <p>Nenhum participante confirmado ainda</p>
+                </div>
+            </div>
+            <button class="export-btn" onclick="exportData()">
+                📥 Exportar Dados
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Dados dos participantes da planilha
+        const initialParticipants = [
+            // Adultos (100%)
+            { id: 1, name: "Abelle de Deus", category: "adult", price: "100%", confirmed: false },
+            { id: 2, name: "Adilson", category: "adult", price: "100%", confirmed: false },
+            { id: 3, name: "Adriana", category: "adult", price: "100%", confirmed: false },
+            { id: 4, name: "Aguinaldo", category: "adult", price: "100%", confirmed: false },
+            { id: 5, name: "Alicia Lopes", category: "adult", price: "100%", confirmed: false },
+            { id: 6, name: "Amanda", category: "adult", price: "100%", confirmed: false },
+            { id: 7, name: "Ana Beatriz Camargo", category: "adult", price: "100%", confirmed: false },
+            { id: 8, name: "Ana Carolina de Paula Rodrigues", category: "adult", price: "100%", confirmed: false },
+            { id: 9, name: "Ana Julia Conceição", category: "adult", price: "100%", confirmed: false },
+            { id: 10, name: "Ana Maria", category: "adult", price: "100%", confirmed: false },
+            { id: 11, name: "Ana Paula Smetana", category: "adult", price: "100%", confirmed: false },
+            { id: 12, name: "Andreza", category: "adult", price: "100%", confirmed: false },
+            { id: 13, name: "Arthur Maringo", category: "adult", price: "100%", confirmed: false },
+            { id: 14, name: "Ashey Lopes", category: "adult", price: "100%", confirmed: false },
+            { id: 15, name: "Bianca Zanardi", category: "adult", price: "100%", confirmed: false },
+            { id: 16, name: "Brenda Goncalves", category: "adult", price: "100%", confirmed: false },
+            { id: 17, name: "Bruna Oliveira", category: "adult", price: "100%", confirmed: false },
+            { id: 18, name: "Camila", category: "adult", price: "100%", confirmed: false },
+            { id: 19, name: "Camila Querino", category: "adult", price: "100%", confirmed: false },
+            { id: 20, name: "Carla", category: "adult", price: "100%", confirmed: false },
+            { id: 21, name: "Catia Fonseca", category: "adult", price: "100%", confirmed: false },
+            { id: 22, name: "Cesar", category: "adult", price: "100%", confirmed: false },
+            { id: 23, name: "Cina", category: "adult", price: "100%", confirmed: false },
+            { id: 24, name: "Clara Campiteli", category: "adult", price: "100%", confirmed: false },
+            { id: 25, name: "Cristiano Bernando", category: "adult", price: "100%", confirmed: false },
+            { id: 26, name: "Cristina Bernando", category: "adult", price: "100%", confirmed: false },
+            { id: 27, name: "Daniel", category: "adult", price: "100%", confirmed: false },
+            { id: 28, name: "Daniela", category: "adult", price: "100%", confirmed: false },
+            { id: 29, name: "Danilo", category: "adult", price: "100%", confirmed: false },
+            { id: 30, name: "Debora", category: "adult", price: "100%", confirmed: false },
+            { id: 31, name: "Deoclecio", category: "adult", price: "100%", confirmed: false },
+            { id: 32, name: "Diego", category: "adult", price: "100%", confirmed: false },
+            { id: 33, name: "Eduarda Kilogon", category: "adult", price: "100%", confirmed: false },
+            { id: 34, name: "Emerson", category: "adult", price: "100%", confirmed: false },
+            { id: 35, name: "Estela", category: "adult", price: "100%", confirmed: false },
+            { id: 36, name: "Ester Gonçalves", category: "adult", price: "100%", confirmed: false },
+            { id: 37, name: "Ester Miranda", category: "adult", price: "100%", confirmed: false },
+            { id: 38, name: "Everton", category: "adult", price: "100%", confirmed: false },
+            { id: 39, name: "Fabiana Ortega", category: "adult", price: "100%", confirmed: false },
+            { id: 40, name: "Felipe (Gabi)", category: "adult", price: "100%", confirmed: false },
+            { id: 41, name: "Felipe Cardoso de Oliveira", category: "adult", price: "100%", confirmed: false },
+            { id: 42, name: "Fernando", category: "adult", price: "100%", confirmed: false },
+            { id: 43, name: "Flávia", category: "adult", price: "100%", confirmed: false },
+            { id: 44, name: "Francisco", category: "adult", price: "100%", confirmed: false },
+            { id: 45, name: "Gabriel Machado de Oliveira", category: "adult", price: "100%", confirmed: false },
+            { id: 46, name: "Gabriela", category: "adult", price: "100%", confirmed: false },
+            { id: 47, name: "Gedalva", category: "adult", price: "100%", confirmed: false },
+            { id: 48, name: "Geovanna Almeida", category: "adult", price: "100%", confirmed: false },
+            { id: 49, name: "Giovana Cletti", category: "adult", price: "100%", confirmed: false },
+            { id: 50, name: "Glayce", category: "adult", price: "100%", confirmed: false },
+            { id: 51, name: "Heloisa Olimpio", category: "adult", price: "100%", confirmed: false },
+            { id: 52, name: "Hiago", category: "adult", price: "100%", confirmed: false },
+            { id: 53, name: "Isabela Doni", category: "adult", price: "100%", confirmed: false },
+            { id: 54, name: "Isabelly Rivas", category: "adult", price: "100%", confirmed: false },
+            { id: 55, name: "Isabelly Yukari", category: "adult", price: "100%", confirmed: false },
+            { id: 56, name: "Ivete", category: "adult", price: "100%", confirmed: false },
+            { id: 57, name: "Izolda", category: "adult", price: "100%", confirmed: false },
+            { id: 58, name: "Jenifer", category: "adult", price: "100%", confirmed: false },
+            { id: 59, name: "Julia do Amaral", category: "adult", price: "100%", confirmed: false },
+            { id: 60, name: "Juliana", category: "adult", price: "100%", confirmed: false },
+            { id: 61, name: "Juninho", category: "adult", price: "100%", confirmed: false },
+            { id: 62, name: "Karollaine Dantas", category: "adult", price: "100%", confirmed: false },
+            { id: 63, name: "Katia Kilogon", category: "adult", price: "100%", confirmed: false },
+            { id: 64, name: "Kiko", category: "adult", price: "100%", confirmed: false },
+            { id: 65, name: "Laís Casteluci", category: "adult", price: "100%", confirmed: false },
+            { id: 66, name: "Lara", category: "adult", price: "100%", confirmed: false },
+            { id: 67, name: "Larissa", category: "adult", price: "100%", confirmed: false },
+            { id: 68, name: "Laura Silva", category: "adult", price: "100%", confirmed: false },
+            { id: 69, name: "Leandro", category: "adult", price: "100%", confirmed: false },
+            { id: 70, name: "Leticia", category: "adult", price: "100%", confirmed: false },
+            { id: 71, name: "Lidia", category: "adult", price: "100%", confirmed: false },
+            { id: 72, name: "Lucas (Glayce)", category: "adult", price: "100%", confirmed: false },
+            { id: 73, name: "Lucas Golveia", category: "adult", price: "100%", confirmed: false },
+            { id: 74, name: "Luis Alberto", category: "adult", price: "100%", confirmed: false },
+            { id: 75, name: "Luis Carlos Matias", category: "adult", price: "100%", confirmed: false },
+            { id: 76, name: "Lurdinha", category: "adult", price: "100%", confirmed: false },
+            { id: 77, name: "Manuela Kaguimoto", category: "adult", price: "100%", confirmed: false },
+            { id: 78, name: "Manuela Santana", category: "adult", price: "100%", confirmed: false },
+            { id: 79, name: "Maraisa Lopes", category: "adult", price: "100%", confirmed: false },
+            { id: 80, name: "Marcela Santana", category: "adult", price: "100%", confirmed: false },
+            { id: 81, name: "Marcos Paulo", category: "adult", price: "100%", confirmed: false },
+            { id: 82, name: "Maria das Virgens", category: "adult", price: "100%", confirmed: false },
+            { id: 83, name: "Mariana de Melo", category: "adult", price: "100%", confirmed: false },
+            { id: 84, name: "Melissa Fonseca", category: "adult", price: "100%", confirmed: false },
+            { id: 85, name: "Nathan Franchini", category: "adult", price: "100%", confirmed: false },
+            { id: 86, name: "Nete", category: "adult", price: "100%", confirmed: false },
+            { id: 87, name: "Nicole Fonseca", category: "adult", price: "100%", confirmed: false },
+            { id: 88, name: "Patricia", category: "adult", price: "100%", confirmed: false },
+            { id: 89, name: "Pedro Henrique Rocha", category: "adult", price: "100%", confirmed: false },
+            { id: 90, name: "Priscila", category: "adult", price: "100%", confirmed: false },
+            { id: 91, name: "Raquel Rosseto Machado", category: "adult", price: "100%", confirmed: false },
+            { id: 92, name: "Rejane", category: "adult", price: "100%", confirmed: false },
+            { id: 93, name: "Rodrigo", category: "adult", price: "100%", confirmed: false },
+            { id: 94, name: "Roselange", category: "adult", price: "100%", confirmed: false },
+            { id: 95, name: "Sandra (Leandro)", category: "adult", price: "100%", confirmed: false },
+            { id: 96, name: "Sandra Santana", category: "adult", price: "100%", confirmed: false },
+            { id: 97, name: "Sarah Araujo", category: "adult", price: "100%", confirmed: false },
+            { id: 98, name: "Sofia Alves", category: "adult", price: "100%", confirmed: false },
+            { id: 99, name: "Sophia Goes", category: "adult", price: "100%", confirmed: false },
+            { id: 100, name: "Sophia Cristina de Almeida", category: "adult", price: "100%", confirmed: false },
+            { id: 101, name: "Sophia Machado", category: "adult", price: "100%", confirmed: false },
+            { id: 102, name: "Sofia da Silva Santana", category: "adult", price: "100%", confirmed: false },
+            { id: 103, name: "Teo", category: "adult", price: "100%", confirmed: false },
+            { id: 104, name: "Thawane", category: "adult", price: "100%", confirmed: false },
+            { id: 105, name: "Uriel", category: "adult", price: "100%", confirmed: false },
+            { id: 106, name: "Vatinho", category: "adult", price: "100%", confirmed: false },
+            { id: 107, name: "Vicente", category: "adult", price: "100%", confirmed: false },
+            { id: 108, name: "Victória Querino", category: "adult", price: "100%", confirmed: false },
+            { id: 109, name: "Viviane", category: "adult", price: "100%", confirmed: false },
+            { id: 110, name: "Wagner Eloy", category: "adult", price: "100%", confirmed: false },
+            { id: 111, name: "Wagner Toledo", category: "adult", price: "100%", confirmed: false },
+            { id: 112, name: "Wiliam", category: "adult", price: "100%", confirmed: false },
+
+            // Crianças 11-12 anos (50%)
+            { id: 113, name: "Matheus", category: "child_11_12", price: "50%", confirmed: false },
+            { id: 114, name: "Rafa", category: "child_11_12", price: "50%", confirmed: false },
+
+            // Crianças até 10 anos (isento)
+            { id: 115, name: "Alice", category: "child_free", price: "Isento", confirmed: false },
+            { id: 116, name: "Ana Beatriz Dos Santos", category: "child_free", price: "Isento", confirmed: false },
+            { id: 117, name: "Ana Luisa", category: "child_free", price: "Isento", confirmed: false },
+            { id: 118, name: "Caleb", category: "child_free", price: "Isento", confirmed: false },
+            { id: 119, name: "David", category: "child_free", price: "Isento", confirmed: false },
+            { id: 120, name: "Helena", category: "child_free", price: "Isento", confirmed: false },
+            { id: 121, name: "Heloisa Camargo", category: "child_free", price: "Isento", confirmed: false },
+            { id: 122, name: "Kaique", category: "child_free", price: "Isento", confirmed: false },
+            { id: 123, name: "Lorena Ortega", category: "child_free", price: "Isento", confirmed: false },
+            { id: 124, name: "Lucas e Livia", category: "child_free", price: "Isento", confirmed: false },
+            { id: 125, name: "Miguel", category: "child_free", price: "Isento", confirmed: false },
+            { id: 126, name: "Pedro", category: "child_free", price: "Isento", confirmed: false },
+            { id: 127, name: "Perola", category: "child_free", price: "Isento", confirmed: false }
+        ];
+
+        let participants = [...initialParticipants];
+        let currentTab = 'search';
+
+        // Carregar dados do localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('attendanceData');
+            if (savedData) {
+                participants = JSON.parse(savedData);
+            }
+            updateStats();
+            renderParticipants();
+        }
+
+        // Salvar dados no localStorage
+        function saveData() {
+            localStorage.setItem('attendanceData', JSON.stringify(participants));
+        }
+
+        // Atualizar estatísticas
+        function updateStats() {
+            const confirmed = participants.filter(p => p.confirmed);
+            const adults = participants.filter(p => p.category === 'adult');
+            const children50 = participants.filter(p => p.category === 'child_11_12');
+            const childrenFree = participants.filter(p => p.category === 'child_free');
+
+            document.getElementById('confirmed-count').textContent = confirmed.length;
+            document.getElementById('confirmed-tab-count').textContent = confirmed.length;
+            document.getElementById('adults-count').textContent = 
+                `${adults.filter(p => p.confirmed).length}/${adults.length}`;
+            document.getElementById('children-50-count').textContent = 
+                `${children50.filter(p => p.confirmed).length}/${children50.length}`;
+            document.getElementById('children-free-count').textContent = 
+                `${childrenFree.filter(p => p.confirmed).length}/${childrenFree.length}`;
+        }
+
+        // Renderizar participantes
+        function renderParticipants() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const pendingList = document.getElementById('pending-list');
+            const confirmedList = document.getElementById('confirmed-list');
+
+            // Lista de pendentes
+            const pending = participants.filter(p => !p.confirmed && 
+                (searchTerm === '' || p.name.toLowerCase().includes(searchTerm)));
+
+            if (pending.length === 0) {
+                pendingList.innerHTML = `
+                    <div class="empty-state">
+                        <p>${searchTerm ? 'Nenhum participante encontrado' : 'Todos os participantes já foram confirmados!'}</p>
+                    </div>
+                `;
+            } else {
+                pendingList.innerHTML = pending.map(p => `
+                    <div class="participant-item">
+                        <div class="participant-info">
+                            <h4>${p.name}</h4>
+                            <span class="badge ${getBadgeClass(p.category)}">${getCategoryText(p.category)} - ${p.price}</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="confirmAttendance(${p.id})">
+                            ✅ Confirmar Presença
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            // Lista de confirmados
+            const confirmed = participants.filter(p => p.confirmed);
+            if (confirmed.length === 0) {
+                confirmedList.innerHTML = `
+                    <div class="empty-state">
+                        <p>Nenhum participante confirmado ainda</p>
+                    </div>
+                `;
+            } else {
+                confirmedList.innerHTML = confirmed.map(p => `
+                    <div class="participant-item">
+                        <div class="participant-info">
+                            <h4>${p.name}</h4>
+                            <span class="badge ${getBadgeClass(p.category)}">${getCategoryText(p.category)} - ${p.price}</span>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span class="confirmed-badge">✅ Confirmado</span>
+                            <button class="btn btn-secondary" onclick="undoConfirmation(${p.id})">
+                                Desfazer
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Confirmar presença
+        function confirmAttendance(id) {
+            participants = participants.map(p => 
+                p.id === id ? { ...p, confirmed: true } : p
+            );
+            document.getElementById('search-input').value = '';
+            saveData();
+            updateStats();
+            renderParticipants();
+        }
+
+        // Desfazer confirmação
+        function undoConfirmation(id) {
+            participants = participants.map(p => 
+                p.id === id ? { ...p, confirmed: false } : p
+            );
+            saveData();
+            updateStats();
+            renderParticipants();
+        }
+
+        // Filtrar participantes
+        function filterParticipants() {
+            renderParticipants();
+        }
+
+        // Mostrar aba
+        function showTab(tab) {
+            currentTab = tab;
+            
+            // Atualizar botões
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Mostrar conteúdo
+            document.getElementById('search-tab').style.display = tab === 'search' ? 'block' : 'none';
+            document.getElementById('confirmed-tab').style.display = tab === 'confirmed' ? 'block' : 'none';
+        }
+
+        // Exportar dados
+        function exportData() {
+            const dataStr = JSON.stringify(participants, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `presencas-evento-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        // Funções auxiliares
+        function getBadgeClass(category) {
+            switch (category) {
+                case 'adult': return 'adult';
+                case 'child_11_12': return 'child-50';
+                case 'child_free': return 'child-free';
+                default: return 'adult';
+            }
+        }
+
+        function getCategoryText(category) {
+            switch (category) {
+                case 'adult': return 'Adulto';
+                case 'child_11_12': return '11-12 anos';
+                case 'child_free': return 'Até 10 anos';
+                default: return 'Adulto';
+            }
+        }
+
+        // Inicializar sistema
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+    </script>
+</body>
+</html>
